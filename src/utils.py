@@ -1,92 +1,9 @@
 from pathlib import Path
-from typing import Iterable, Set
 import pandas as pd
 
 
-def _visible_children(p: Path) -> list[Path]:
-    return sorted(
-        [
-            c
-            for c in p.iterdir()
-            if not c.name.startswith(".") and c.name != "__pycache__"
-        ],
-        key=lambda x: (not x.is_dir(), x.name.lower()),  # dirs first, then files
-    )
 
 
-def print_tree(path: Path, prefix: str = "", collapse_folders: Set[str] | None = None):
-    """
-    Pretty prints a directory tree, skipping hidden files and __pycache__,
-    and collapsing 'game-like' subdirectories under specific parent folders.
-
-    For each folder named in `collapse_folders`, it will:
-      - Show ONE example subdirectory (fully expanded)
-      - Then show a line like '... (N more games)' if there are more
-
-    Args:
-        path: Directory to print.
-        prefix: Indentation prefix for recursive levels.
-        collapse_folders: Folder names under which to collapse subfolders.
-    """
-    if collapse_folders is None:
-        collapse_folders = {"H_EURO2024", "Q_EURO2025", "U21_EURO2025"}
-
-    contents = _visible_children(path)
-    if not contents:
-        return
-
-    pointers = ["├── "] * (len(contents) - 1) + ["└── "]
-    for pointer, p in zip(pointers, contents):
-        print(prefix + pointer + p.name)
-        if p.is_dir():
-            extension = "│   " if pointer == "├── " else "    "
-
-            # Special handling for the collapse folders
-            if p.name in collapse_folders:
-                subitems = _visible_children(p)
-                subdirs = [c for c in subitems if c.is_dir()]
-                files = [c for c in subitems if not c.is_dir()]
-
-                collapsed_items: list[tuple[str, Path | int]] = []
-
-                if subdirs:
-                    example_dir = subdirs[0]  # show the first game folder
-                    collapsed_items.append(("example_dir", example_dir))
-                    if len(subdirs) > 1:
-                        collapsed_items.append(("ellipsis", len(subdirs) - 1))
-
-                # Also list any files directly under the collapse folder (rare, but supported)
-                for f in files:
-                    collapsed_items.append(("file", f))
-
-                if collapsed_items:
-                    inner_pointers = ["├── "] * (len(collapsed_items) - 1) + ["└── "]
-                    for inner_ptr, (kind, obj) in zip(inner_pointers, collapsed_items):
-                        line_prefix = prefix + extension
-                        if kind == "example_dir":
-                            ex: Path = obj  # type: ignore
-                            print(line_prefix + inner_ptr + ex.name + "/")
-                            # Recurse into the example directory to show its contents fully
-                            inner_extension = "│   " if inner_ptr == "├── " else "    "
-                            print_tree(
-                                ex, line_prefix + inner_extension, collapse_folders
-                            )
-                        elif kind == "ellipsis":
-                            more_count: int = obj  # type: ignore
-                            print(
-                                line_prefix
-                                + inner_ptr
-                                + f"... ({more_count} more games)"
-                            )
-                        elif kind == "file":
-                            f: Path = obj  # type: ignore
-                            print(line_prefix + inner_ptr + f.name)
-                else:
-                    # No visible children inside the collapse folder
-                    print(prefix + extension + "└── (empty)")
-            else:
-                # Normal recursion for non-collapsed folders
-                print_tree(p, prefix + extension, collapse_folders)
 
 
 def matchPeriod_to_half(matchPeriod: str):
@@ -104,7 +21,7 @@ def matchPeriod_to_half(matchPeriod: str):
     return mapping.get(matchPeriod, None)
 
 
-def convert_HHMMSS_to_secs(HHMMSS: str) -> int:
+def convert_HHMMSS_to_secs(HHMMSS: str) -> float:
 
     first_half_offset_parts = HHMMSS.split(":")
 
@@ -147,18 +64,40 @@ def _timestamp_helper(half, time, tracking, time_column="time_passed_in_half"):
 
 
 def plot_tracking(
-    home,
-    away,
-    half,
-    time,
-    time_column="time_passed_in_half",
-    home_color="red",
-    away_color="blue",
-    home_label="Home",
-    away_label="Away",
-):
+    home: pd.DataFrame,
+    away: pd.DataFrame,
+    half: int,
+    time: float,
+    time_column: str = "time_passed_in_half",
+    home_color: str = "red",
+    away_color: str = "blue",
+    home_label: str = "Home",
+    away_label: str = "Away",
+) -> None:
+    """
+    Plot tracking data for both teams on a football pitch.
+    
+    Args:
+        home: DataFrame containing home team tracking data with player positions and ball position
+        away: DataFrame containing away team tracking data with player positions and ball position  
+        half: Match half number (1, 2, 3, 4, etc.)
+        time: Time passed in the specified half (in seconds)
+        time_column: Column name for time data in tracking DataFrames
+        home_color: Color for home team players on the plot
+        away_color: Color for away team players on the plot
+        home_label: Label text for home team
+        away_label: Label text for away team
+        
+    Returns:
+        None: Displays the plot using matplotlib
+        
+    Note:
+        Tracking DataFrames should contain columns like 'player_1_x', 'player_1_y', 
+        'ball_x', 'ball_y', 'half', and the specified time_column.
+    """
     import mplsoccer
     import matplotlib.pyplot as plt
+    from typing import Any
 
     # Initialize the pitch with dimensions 105 x 68
     pitch = mplsoccer.Pitch(
@@ -166,7 +105,7 @@ def plot_tracking(
         pitch_length=105,
         pitch_width=68,
     )  # axis=True,label=True)
-    fig, ax = pitch.draw(figsize=(10, 7))
+    fig, ax = pitch.draw(figsize=(10, 7))  # type: ignore
 
     closest_timestamp = _timestamp_helper(half, time, home, time_column)
 
@@ -218,7 +157,7 @@ def plot_tracking(
         ][y_columns].values.flatten()
 
         for i, txt in enumerate(player_nums):
-            a = ax.annotate(
+            a = ax.annotate(  # type: ignore
                 txt,
                 (player_xs[i], player_ys[i]),
                 ha="center",
@@ -228,7 +167,7 @@ def plot_tracking(
                 fontweight="bold",
             )
 
-    ax.annotate(
+    ax.annotate(  # type: ignore
         home_label,
         (-4, 35),  # Place it outside the pitch on the left
         ha="center",
@@ -238,14 +177,14 @@ def plot_tracking(
         fontweight="bold",
     )
 
-    ax.annotate(
+    ax.annotate(  # type: ignore
         "",
         xy=(-2, 34.5),  # Arrow end
         xytext=(-6, 34.5),  # Arrow start
         arrowprops=dict(arrowstyle="->", color=home_color, lw=2),
     )
 
-    ax.annotate(
+    ax.annotate(  # type: ignore
         away_label,
         (4, 35),  # Place it outside the pitch on the right
         ha="center",
@@ -255,7 +194,7 @@ def plot_tracking(
         fontweight="bold",
     )
 
-    ax.annotate(
+    ax.annotate(  # type: ignore
         "",
         xy=(2, 34.5),  # Arrow end
         xytext=(6, 34.5),  # Arrow start
