@@ -10,6 +10,7 @@ Instead of cloning this repository, please create a new repository for your team
 **Remeber to make it private so that other teams cannot see your work! ;-) (and to not violate any data rights)**  
 
 ## 1 Install  python packages  
+If you do not already have a python version installed otherwise you can go to [their download page](https://www.python.org/downloads/). 
 You can install the required packages into you global python installation by writing `pip install -r requirements.txt`, but we recommend using a virtual environment manager.
 
 To use a virtual environment, you can make use of onw of the two options below:
@@ -34,7 +35,7 @@ To use a virtual environment, you can make use of onw of the two options below:
 
 ### 1.2. Optional: Install virtual environment with UV (the new python management tool)
 
-UV is the new python management tool we are using. You can check a demo of basic usage [here](https://docs.astral.sh/uv/).
+UV is a new python management tool. You can check a demo of basic usage [here](https://docs.astral.sh/uv/).
 
 1. Install uv (check this [page](https://docs.astral.sh/uv/getting-started/installation/) for more details):
 * MacOs and Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
@@ -43,11 +44,10 @@ UV is the new python management tool we are using. You can check a demo of basic
 
 The dependencies are managed by uv, that installs everything (including python) in a local environment.
 
-1) In the root of your newly created project (where this README is) run `uv sync` in your terminal.* 
-2) Test if everything is working as intended by running `uv run pytest`. This will run all the tests available. 
-3) Test again that everything is running by importing your new package.
+1) In the root of this project (where this README is) run `uv sync` in your terminal. 
+3) Test again that everything is running by importing the dataloder.
     1. Open a python shell in the created virtual environment by running `uv run python` in your shell.
-    2. Try to import your package in that python sheel: `>>> import <YOUR NEW PACKAGE>`.
+    2. Try to import your package in that python sheel: `>>> from src.data_loader import DataLoader`.
 
 If all these steps work, the installation was succesfull! 
     
