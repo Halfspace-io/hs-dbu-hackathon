@@ -4,3 +4,6 @@ data/*
 .venv/
 *.pyc
 .python-version
+# Track the data folder itself but ignore its contents
+data/**
+!data/.gitkeep
