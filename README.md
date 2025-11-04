@@ -4,6 +4,10 @@ Getting started
 ============
 Follow the steps in this README to get you up and running.
 
+## 0 Don't clone this repo! 
+Instead of cloning this repository, please create a new repository for your team based on this template. You can do this by clicking the green "Use this template" button at the top right of this page.
+
+**Remeber to make it private so that other teams cannot see your work! ;-) (and to not violate any data rights)**  
 
 ## 1 Install  python packages  
 You can install the required packages into you global python installation by writing `pip install -r requirements.txt`, but we recommend using a virtual environment manager.
